@@ -1,3 +1,4 @@
+
 export class Systems{
   gatherOnce(G){
     if(G.player.stamina < 10) return {ok:false,msg:"体力不足で採取できない"};
@@ -46,3 +47,4 @@ function canDo(recipeId, G){
 }
 function useInputs(r,G){ for(const inp of r.inputs){ G.inv[inp.id]-=inp.qty; } }
 function addOutputs(r,G){ for(const o of r.outputs){ G.inv[o.id]=(G.inv[o.id]||0)+o.qty; } }
+

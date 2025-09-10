@@ -1,3 +1,4 @@
+
 import { initInput, getInputOnce, clearPressed } from "./input.js";
 import { Renderer } from "./renderer.js";
 import { newGameState, nextDay } from "./engine/state.js";

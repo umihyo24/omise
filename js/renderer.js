@@ -1,3 +1,4 @@
+
 export class Renderer{
   constructor(ctx){ this.ctx = ctx; this.font = "16px ui-monospace, Consolas, monospace"; }
   clear(){ const c=this.ctx.canvas; this.ctx.clearRect(0,0,c.width,c.height); }

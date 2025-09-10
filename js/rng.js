@@ -6,5 +6,6 @@ export function seeded(seed){
     s ^= s >> 17; s >>>= 0;
     s ^= s << 5;  s >>>= 0;
     return (s>>>0) / 0xFFFFFFFF;
+
   }
 }

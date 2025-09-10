@@ -1,3 +1,4 @@
+
 export function makeData(){
   // 超最小のサンプル：砂→ガラス、油→石鹸（※安全配慮で抽象化）
   return {
