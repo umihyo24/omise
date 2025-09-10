@@ -1,47 +1,59 @@
-import { createState, saveState } from './engine/state.js';
-import { data } from './engine/data.js';
-import { draw } from './renderer.js';
-import { setupInput } from './input.js';
-import { gather, craft, sell } from './engine/systems.js';
-import { runSimulation } from './engine/sim.js';
 
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
+import { initInput, getInputOnce, clearPressed } from "./input.js";
+import { Renderer } from "./renderer.js";
+import { newGameState, nextDay } from "./engine/state.js";
+import { Systems } from "./engine/systems.js";
 
-const seed = Number(new URLSearchParams(window.location.search).get('seed')) || Date.now();
-const state = createState(seed);
-const simSummary = runSimulation();
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+ctx.imageSmoothingEnabled = false;
 
-function getMenuOptions() {
-  const tab = state.tabs[state.tabIndex];
-  if (tab === 'gather') {
-    return state.flags.gathered ? ['採取済み'] : ['高嶺の森'];
-  } else if (tab === 'craft') {
-    if (state.flags.crafted) return ['クラフト済み'];
-    return state.inventory['tsuchi-ishi'] ? ['護符加工'] : ['材料不足'];
-  } else if (tab === 'shop') {
-    if (state.flags.sold) return ['販売済み'];
-    return state.inventory['stone-charm'] ? ['石護符を売る'] : ['商品なし'];
+const input = initInput();
+const ren = new Renderer(ctx);
+const sys = new Systems();
+
+const G = newGameState();
+
+function tick(ts){
+  update(1/60);
+  render();
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+function update(dt){
+  const key = getInputOnce();
+  if(key === "Tab") {
+    const tabs = ["拠点","採取","クラフト","店舗"];
+    G.ui.tab = (G.ui.tab + 1) % tabs.length;
+    G.ui.message = `画面: ${tabs[G.ui.tab]}`;
   }
-  return ['Tabで画面切替'];
-}
+  if(key === "ArrowUp")    G.ui.cursor = Math.max(0, G.ui.cursor-1);
+  if(key === "ArrowDown")  G.ui.cursor = Math.min(3, G.ui.cursor+1);
 
-function onSelect() {
-  const tab = state.tabs[state.tabIndex];
-  if (tab === 'gather' && !state.flags.gathered) {
-    gather(state, data);
-  } else if (tab === 'craft' && !state.flags.crafted) {
-    craft(state, data);
-  } else if (tab === 'shop' && !state.flags.sold) {
-    sell(state, data);
+  if(key === "Enter"){
+    const tab = G.ui.tab;
+    if(tab===0){ // 拠点
+      G.ui.log.push("休息して体力を少し回復した。");
+      G.player.stamina = Math.min(100, G.player.stamina+10);
+    }else if(tab===1){ // 採取
+      const r = sys.gatherOnce(G);
+      G.ui.log.push(`採取: ${r.msg}`);
+    }else if(tab===2){ // クラフト
+      const r = sys.craftOnce(G);
+      G.ui.log.push(`クラフト: ${r.msg}`);
+    }else if(tab===3){ // 店舗
+      const r = sys.sellOnce(G);
+      G.ui.log.push(`販売: ${r.msg}`);
+      nextDay(G);
+      G.ui.log.push(`— 翌日(${G.calendar.day}) —`);
+    }
   }
-  saveState(state);
+  clearPressed();
 }
 
-setupInput(state, getMenuOptions, onSelect);
-
-function loop() {
-  draw(ctx, state, getMenuOptions(), simSummary);
-  requestAnimationFrame(loop);
+function render(){
+  ren.clear();
+  ren.drawFrame();
+  ren.drawPanels(G);
 }
-loop();

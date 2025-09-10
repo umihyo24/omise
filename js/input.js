@@ -1,16 +1,17 @@
-export function setupInput(state, getMenuOptions, onSelect) {
-  window.addEventListener('keydown', e => {
-    const opts = getMenuOptions();
-    if (e.key === 'ArrowUp') {
-      state.menuIndex = (state.menuIndex - 1 + opts.length) % opts.length;
-    } else if (e.key === 'ArrowDown') {
-      state.menuIndex = (state.menuIndex + 1) % opts.length;
-    } else if (e.key === 'Enter') {
-      onSelect();
-    } else if (e.key === 'Tab') {
+
+const pressed = new Set();
+let lastOnce = null;
+
+export function initInput(){
+  window.addEventListener("keydown", (e)=>{
+    if (["ArrowUp","ArrowDown","Enter","Tab","Escape"].includes(e.key)) {
+      pressed.add(e.key);
+      lastOnce = e.key;
       e.preventDefault();
-      state.tabIndex = (state.tabIndex + 1) % state.tabs.length;
-      state.menuIndex = 0;
     }
-  });
+  }, {passive:false});
+  window.addEventListener("keyup", (e)=> pressed.delete(e.key));
+  return { };
 }
+export function getInputOnce(){ const k = lastOnce; lastOnce = null; return k; }
+export function clearPressed(){ pressed.clear(); }

@@ -1,28 +1,24 @@
-import { RNG } from '../rng.js';
 
-export function createState(seed) {
-  const raw = localStorage.getItem('omise-save');
-  if (raw) {
-    const obj = JSON.parse(raw);
-    obj.rng = new RNG(seed);
-    return obj;
-  }
+import { seeded } from "../rng.js";
+import { makeData } from "./data.js";
+
+export function newGameState(){
+  const data = makeData();
   return {
-    tabIndex: 0,
-    tabs: ['home', 'gather', 'craft', 'shop'],
-    menuIndex: 0,
-    logs: [],
-    inventory: {},
-    money: 0,
-    day: 1,
-    reputation: 0,
-    rng: new RNG(seed),
-    flags: { gathered: false, crafted: false, sold: false }
+    data,
+    rng: seeded(12345),
+    calendar: { day: 1, season: "spring" },
+    world: { weather: "sunny", reputation: 0 },
+    player: { stamina: 100, skill: 1 },
+    money: 200,
+    inv: { sand: 5, oil: 2, glass:0, soap:0 },
+    ui: { tab: 0, cursor: 0, log: ["— 初日 —"], message:"" }
   };
 }
-
-export function saveState(state) {
-  const copy = { ...state };
-  delete copy.rng;
-  localStorage.setItem('omise-save', JSON.stringify(copy));
+export function nextDay(G){
+  G.calendar.day++;
+  // 超簡易：天候ローテ
+  const order = ["sunny","rainy","storm","sunny","sunny","rainy"];
+  G.world.weather = order[G.calendar.day % order.length];
+  G.player.stamina = Math.min(100, G.player.stamina+20);
 }

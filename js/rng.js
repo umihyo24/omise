@@ -1,12 +1,11 @@
-export class RNG {
-  constructor(seed = Date.now()) {
-    this.seed = seed >>> 0;
-  }
-  next() {
-    this.seed = (1664525 * this.seed + 1013904223) % 4294967296;
-    return this.seed / 4294967296;
-  }
-  nextInt(max) {
-    return Math.floor(this.next() * max);
+export function seeded(seed){
+  let s = seed>>>0;
+  return function(){
+    // xorshift32
+    s ^= s << 13; s >>>= 0;
+    s ^= s >> 17; s >>>= 0;
+    s ^= s << 5;  s >>>= 0;
+    return (s>>>0) / 0xFFFFFFFF;
+
   }
 }
